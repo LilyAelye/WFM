@@ -1,0 +1,93 @@
+
+body {
+    background-color: rgb(58, 58, 58);
+    color: white;
+}
+h1 {
+    background-image: linear-gradient(to right, #3b73db, #2065e6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+h2, h3, h4, h5, h6 {
+    color: white;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+
+}
+
+nav {
+    background-color: #1c3f80;
+    width:inherit; height:8vh; display:flex; align-items:center; justify-content:space-between; padding: 0 20px;
+}
+
+div:is(.middle) {
+    /* puts the div in the center of the page (not in height but only on the X axis) */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+input[type="text"], input[type="password"] {
+    background-color: #444444;
+    border: none;
+    padding: 10px;
+    color: white;
+    border-radius: 5px;
+    transition: 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+textarea {
+     background-color: #444444;
+    border: none;
+    padding: 10px;
+    color: white;
+    border-radius: 5px;
+    max-width: 1200px;
+    max-height: 400px;
+    overflow-y: scroll;
+    overflow-x:hidden;
+    transition: 1.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+button[type="submit"] {
+    background-color: #3b73db;
+    border: none;
+    padding: 10px 20px;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input:focus {
+    outline: none;
+    color: rgb(191, 191, 255);
+    box-shadow: 0 0 10px #3b73db;
+}
+
+label {
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+select {
+    background-color: #1f1f1f;
+    border: none;
+    padding: 10px;
+    color: white;
+    border-radius: 5px;
+    
+}
+
+a {
+    color: #87e075;
+    text-decoration: none;
+    font-size: larger;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}

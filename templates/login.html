@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <h1>
+            {{title}}
+        </h1>
+        <form action="/sl" method="post">
+            <select name="language" id="language">
+                <option value="en" {% if language == 'en' %}selected{% endif %}>English</option>
+                <option value="es" {% if language == 'es' %}selected{% endif %}>Español</option>
+                <option value="fr" {% if language == 'fr' %}selected{% endif %}>Français</option>
+                <option value="de" {% if language == 'de' %}selected{% endif %}>Deutsch</option>
+            </select>
+            <button type="submit">Set Language</button>
+            
+        </form>
+    </nav>
+    <div class="middle">
+        <form method="POST" action="{{ url_for('login') }}">
+            <h2>
+                {% if language == 'en' %}
+                Login
+                {% elif language == 'es' %}
+                    Iniciar sesión
+                {% elif language == 'fr' %}
+                    Se connecter
+                {% elif language == 'de' %}
+                    Anmelden
+                {% else %}
+                    Login
+                {% endif %}
+
+            </h2>
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+            <label for="username">
+                {% if language == 'en' %}
+                    Username
+                {% elif language == 'es' %}
+                    Nombre de usuario
+                {% elif language == 'fr' %}
+                    Nom d'utilisateur
+                {% elif language == 'de' %}
+                    Benutzername
+                {% else %}
+                    Username
+                {% endif %}
+                :</label>
+            <br>
+            <input type="text" id="username" name="username" required>
+            <br>
+            <br>
+            <label for="password">
+                {% if language == 'en' %}
+                    Password
+                {% elif language == 'es' %}
+                    Contraseña
+                {% elif language == 'fr' %}
+                    Mot de passe
+                {% elif language == 'de' %}
+                    Passwort
+                {% else %}
+                    Password
+                {% endif %}
+                :
+
+            </label>
+            <br>
+            <input type="password" id="password" name="password" required>
+            <br>
+            <br>
+            <button type="submit">
+                {% if language == 'en' %}
+                    Login
+                {% elif language == 'es' %}
+                    Iniciar sesión
+                {% elif language == 'fr' %}
+                    Se connecter
+                {% elif language == 'de' %}
+                    Anmelden
+                {% else %}
+                    Login
+                {% endif %}
+
+            </button>
+        </form>
+    </div>
+</body>
+</html>

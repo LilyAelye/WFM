@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{url_for('js', scr='UI.js')}}"></script>
+</head>
+<body>
+    <nav>
+        <h1>
+            {{title}}
+        </h1>
+        <form action="/sl" method="post">
+            <select name="language" id="language">
+                <option value="en" {% if language == 'en' %}selected{% endif %}>English</option>
+                <option value="es" {% if language == 'es' %}selected{% endif %}>Español</option>
+                <option value="fr" {% if language == 'fr' %}selected{% endif %}>Français</option>
+                <option value="de" {% if language == 'de' %}selected{% endif %}>Deutsch</option>
+            </select>
+            <button type="submit">Set Language</button>
+            
+        </form>
+    </nav>
+    <div class="middle">
+        <nav>
+            <h2>
+            {% if language == 'en' %}
+            Shared Files
+            {% elif language == 'es' %}
+                Archivos compartidos
+            {% elif language == 'fr' %}
+                Fichiers partagés
+            {% elif language == 'de' %}
+                Geteilte Dateien
+            {% else %}
+                Shared Files
+            {% endif %}
+            </h2>
+            <div style="width: 20px;"></div>
+            <button type="submit" onclick="Create_UI('New Folder', ['name'], '{{path}}')">Create New Folder </button>
+            <div style="width: 20px;"> </div>
+            <button type="submit" onclick="Create_UI('New File', ['name'], '{{path}}')">Create New File</button>
+            
+        </nav>
+
+        <br>
+
+    </div>
+    <div class="middle" style="background-color: rgb(41, 41, 41); height: 50svh">
+        <ul>
+            {% for file in files %}
+            <li>
+               {% if file.is_dir %}
+               
+                   <a href="{{ url_for('share', path=(path or 'share') ~ '/' ~ file.name) }}" style="color:aqua">
+                    {{file.name}}/   
+                </a>
+               {% else %}
+                   <a href="{{url_for('editor', path=path+'/'+file.name)}}">{{ file.name }}</a>
+               {% endif %}
+            </li>
+            {% endfor %}
+            <script>
+                // Get if it's the path isnt exactly "/share" for the past else show "Return to the root folder" 'a' object to go to the path 's root (if it's argument ?path= isnt just share)
+                console.log("{{path}}")
+                if (window.location.search.includes('path=') && !window.location.search.endsWith('path=share')) {
+                    const pathParam = new URLSearchParams(window.location.search).get('path');
+                    const rootpath = pathParam.substring(0, pathParam.lastIndexOf('/'))
+                    const li = document.createElement('li');
+                    const link = document.createElement('a');
+                    const shareUrl = `{{url_for('share', path='')}}`;
+                    fetch(shareUrl + rootpath)
+                    .then( data => {
+                        if (data.status == 404) {
+                            prompt('[!] Failed to get')
+                            return false
+                        }
+                        return true
+                    } )
+                    .then( info => {
+                        console.log('valid')
+                        link.href = shareUrl + rootpath
+                    })
+                    .catch(c =>{
+                        console.log('errored.')
+                    })
+                    link.textContent = '^root';
+                    li.appendChild(link);
+                    document.querySelector('ul').insertBefore(li, document.querySelector('ul').firstChild);
+                }
+            </script>
+        </ul>
+    </div>
+</body>
+</html>
