@@ -193,4 +193,4 @@ class Fileshare:
             return redirect('/')
 
         print(f"{Back.BLUE + Fore.LIGHTGREEN_EX} Booting server on {self.port} {Style.RESET_ALL}")
-        self.app.run('0.0.0.0',self.port, debug=True)
+        self.app.run('0.0.0.0',self.port, debug=True, threaded=True)
