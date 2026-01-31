@@ -12,7 +12,7 @@ from flask import (
 from os import path as pathlib, listdir
 
 from werkzeug.security import (generate_password_hash, check_password_hash)
-
+from colorama import (Fore, Back, Style)
 class Fileshare:
     def __init__(self, port, sharedir, title=None):
         self.port = port
@@ -29,7 +29,8 @@ class Fileshare:
         @self.app.context_processor
         def contextproc():
             return {
-                "title": self.title
+                "title": self.title,
+                "language": request.cookies.get('language','en')
             }
 
         def VerifyLogin(username, password):
@@ -191,4 +192,5 @@ class Fileshare:
         def page_not_found(err):
             return redirect('/')
 
+        print(f"{Back.BLUE + Fore.LIGHTGREEN_EX} Booting server on {self.port} {Style.RESET_ALL}")
         self.app.run('0.0.0.0',self.port, debug=True)

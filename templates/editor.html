@@ -45,102 +45,193 @@
         <br>
 
     </div>
-    <div class="middle" style="background-color: rgb(41, 41, 41); height: 50svh; justify-content: start; align-items: start;">
+    <div class="middle" style="background-color: rgb(41, 41, 41); height: 9svh; justify-content: start; align-items: start;">
         <nav style="align-self:flex-start; background-color: #0000;">
                 <button type="submit" style="margin-right: 20px;"><img src="static/save.png" alt="save"> Save</button>
                 <button type="submit" style="margin:0%;" ><img src="static/download.png" alt="download"> Download</button>
                 <button type="submit" onclick="window.location.href='{{path}}'"> Close file </button>
-            </nav>
-        <ul>
+        </nav>
+    </div>
             
-        <div class="editor-container">
-    <div id="backdrop">
-        <div id="highlighting"></div>
-    </div>
-    <textarea id="textb" spellcheck="false" oninput="updateView()" onscroll="syncScroll()"></textarea>
-    </div>
-
     <style>
-        /* Configuration des couleurs et de la police */
         :root {
-            --bg-color: #1e1e1e;
-            --text-color: #d4d4d4;
-            --font-size: 16px;
-            --line-height: 1.5; /* Crucial pour éviter le saut de ligne */
+            /* On fixe une hauteur de ligne en pixels pour éviter les décalages de calcul svh */
+            --line-height-px: 24px; 
+            --editor-width: 25svw;
+            --editor-height: 25svh;
         }
 
-        .editor-container {
+        .editor-wrapper {
             position: relative;
-            width: 1400px;
-            height: 500px;
-            background: var(--bg-color);
+            width: var(--editor-width);
+            height: var(--editor-height);
+            background: #1e1e1e;
             border: 1px solid #333;
+            overflow: hidden; /* Empêche les fuites visuelles */
         }
 
-        #textb, #backdrop {
+        .common-style {
+            margin: 0;
+            padding: 0px;
+            font-family: 'Consolas', monospace;
+            font-size: 16px;
+            line-height: var(--line-height-px);
+            box-sizing: border-box; /* Crucial pour que le padding soit inclus dans les 25svw */
+            width: 100%;
+            height: 100%;
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            margin: 0; padding: 15px; /* Garde le même padding partout */
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: var(--font-size);
-            line-height: var(--line-height);
-            box-sizing: border-box;
+            top: 0;
+            left: 0;
             white-space: pre-wrap;
             word-wrap: break-word;
-            border: none;
-            outline: none;
+            tab-size: 4;
         }
 
         #textb {
             background: transparent;
-            color: transparent;
-            caret-color: white;
+            color: transparent; /* CACHE LE TEXTE BLANC */
+            caret-color: white; 
             z-index: 2;
             resize: none;
-            overflow-y: scroll;
+            border: none;
+            outline: none;
+            overflow-y: auto;
         }
 
         #backdrop {
-            color: var(--text-color);
+            color: #d4d4d4;
             z-index: 1;
-            overflow-y: scroll; /* Doit avoir le scroll aussi */
-            pointer-events: none; /* Laisse passer les clics vers le textarea */
+            overflow-y: auto;
+            pointer-events: none;
         }
+
+        /* On cache la scrollbar du fond pour éviter le "double trait" */
+        #backdrop::-webkit-scrollbar { width: 0; }
     </style>
+
+    <div class="editor-wrapper"><div id="backdrop" class="common-style"><div id="highlighting"></div></div><textarea id="textb" class="common-style" spellcheck="false" oninput="updateView()" onscroll="syncScroll()"></textarea></div>
 
     <script>
         // TA LISTE DE MOTS ET COULEURS ICI
-        const syntaxConfig = {
-            "local": "#ff4500",    // Orange-Rouge
-            "function": "#569cd6", // Bleu
-            "end": "#c586c0",      // Violet
-            "if": "#c586c0",
-            "then": "#c586c0",
-            "return": "#d16969",   // Rouge mat
-            "true": "#4ec9b0",     // Vert d'eau
-            "false": "#4ec9b0"
+        const allSyntaxes = {
+            "lua": {
+                "keywords": ["local", "function", "end", "if", "then", "else", "return", "true", "false", "print"],
+                "boolean": ["true","false"],
+                "function": ["!!!!"],
+                "colors": {
+                    "keyword": "#ff4500",
+                    "symbol": "#ffffff",
+                    "number": "#4ec9b0",
+                    "comment": "#6a9955",
+                    "boolean": "#cf03fc",
+                    "function":"#fcf403"
+                },
+                "commentPrefix": "--"
+            },
+            "python": {
+                "keywords": ["def", "class", "import", "from", "as", "if", "elif", "else", "for", "while", "in", "return", "print"],
+                "boolean":["True","False"],
+                "function":["!!!!"],
+                "colors": {
+                    "keyword": "#569cd6",
+                    "symbol": "#d4d4d4",
+                    "number": "#b5cea8",
+                    "comment": "#6a9955",
+                    "string": "#ce9178",
+                    "boolean": "#cf03fc",
+                    "function": "#fcf403"
+                },
+                "commentPrefix": "#"
+            },
+            "markdown": {
+                "keywords": [":::"],
+                "boolean": [":::"],
+                "function": ["::::"],
+                "colors": {
+                    "keyword": "#569cd6",
+                    "symbol": "#d4d4d4",
+                    "number": "#b5cea8",
+                    "comment": "#6a9955",
+                    "string": "#ce9178",
+                    "boolean": "#cf03fc",
+                    "function": "#fcf403"
+                }
+            }
         };
+        const colorgeneral = {
+            "&num": "#fc9403"
+        }
 
         const area = document.getElementById('textb');
         const high = document.getElementById('highlighting');
         const backdrop = document.getElementById('backdrop');
-
+        let currentLang = "markdown"; // Changé dynamiquement selon le fichier ouvert
+        if ("{{file}}".endsWith('.py')) {
+            currentLang = "python"
+        } else if ("{{file}}".endsWith('.lua')) {
+            currentLang = "lua"
+        }
         function updateView() {
+            const config = allSyntaxes[currentLang]
             let content = area.value;
 
-            // Échappement HTML pour éviter les bugs avec < ou >
-            content = content.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+            // 1. Échappement des caractères HTML (sinon les <span> cassent tout)
+            content = content.replace(/&/g, "&amp;")
+            
+            content = content.replace(/<=/g, "&ue")
+            content = content.replace(/>=/g, "&oe")
+            content = content.replace(/</g, "&lt")
+            content = content.replace(/>/g, "&gt")
+            content = content.replace(/=/g, "&eq")
+            
+            content = content.replace('+', "&op")
+            content = content.replace(/-/g, "&om")
+            content = content.replace('/', "&od");
+            content = content.replace('*', "&multi")
 
-            // Application de la coloration via la liste
-            for (let word in syntaxConfig) {
-                let color = syntaxConfig[word];
+            let numbersList = [];
+            content = content.replace(/\d+/g, (match) => {
+                numbersList.push(match); // On stocke le nombre
+                return `&num${numbersList.length - 1} `; // On crée un placeholder unique ex: &num0
+            });
+
+            // 2. Application des couleurs
+            let windex = -1
+            let ite = 0
+            
+            config.keywords.forEach(word => {
                 let regex = new RegExp(`\\b${word}\\b`, 'g');
-                content = content.replace(regex, `<span style="color: ${color}; font-weight: bold;">${word}</span>`);
+                content = content.replace(regex, `<span style="color: ${config.colors.keyword};">${word}</span>`);
+            });
+            config.boolean.forEach(word => {
+                let regex = new RegExp(`\\b${word}\\b`, 'g');
+                content = content.replace(regex, `<span style="color: ${config.colors.boolean};">${word}</span>`);
+            });
+            config.function.forEach(word => {
+                let regex = new RegExp(`\\b${word}\\b`, 'g');
+                content = content.replace(regex, `<span style="color: ${config.colors.function};">${word}</span>`);
+            })
+  
+            const symbolColors = {
+                "&eq": "=", "&op": "+", "&om": "-", "&od": "/", 
+                "&oe": ">=", "&ue": "<=", "&multi": "*"
+            };
+            // Remplacement des opérateurs
+            for (let s in symbolColors) {
+                let reg = new RegExp(s, 'g');
+                content = content.replace(reg, `<span style="color: ${colorgeneral[s] || '#ffffff'};">${symbolColors[s]}</span>`);
             }
 
-            // On termine par un espace invisible pour gérer le décalage du dernier saut de ligne
+            // Remplacement des nombres indexés
+            numbersList.forEach((val, i) => {
+                let reg = new RegExp(`&num${i}\\s`, 'g'); // On cherche le placeholder spécifique
+                content = content.replace(reg, `<span style="color: ${colorgeneral['&num']};">${val}</span>`);
+            });
+
+            // 3. Correction du bug de saut de ligne final
+            // Si le texte finit par un retour à la ligne, on ajoute un espace pour forcer le div à "pousser"
             high.innerHTML = content + (content.endsWith('\n') ? ' ' : '');
+            syncScroll();
         }
 
         function syncScroll() {
@@ -150,6 +241,7 @@
 
         // Initialisation
         area.addEventListener('scroll', syncScroll);
+        updateView()
     </script>
     </div>
 </body>
