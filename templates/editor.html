@@ -53,8 +53,104 @@
             </nav>
         <ul>
             
-            <textarea placeholder="Enter text here.. (empty)" style="resize: both;"></textarea>
-        </ul>
+        <div class="editor-container">
+    <div id="backdrop">
+        <div id="highlighting"></div>
+    </div>
+    <textarea id="textb" spellcheck="false" oninput="updateView()" onscroll="syncScroll()"></textarea>
+    </div>
+
+    <style>
+        /* Configuration des couleurs et de la police */
+        :root {
+            --bg-color: #1e1e1e;
+            --text-color: #d4d4d4;
+            --font-size: 16px;
+            --line-height: 1.5; /* Crucial pour éviter le saut de ligne */
+        }
+
+        .editor-container {
+            position: relative;
+            width: 1400px;
+            height: 500px;
+            background: var(--bg-color);
+            border: 1px solid #333;
+        }
+
+        #textb, #backdrop {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            margin: 0; padding: 15px; /* Garde le même padding partout */
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: var(--font-size);
+            line-height: var(--line-height);
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: none;
+            outline: none;
+        }
+
+        #textb {
+            background: transparent;
+            color: transparent;
+            caret-color: white;
+            z-index: 2;
+            resize: none;
+            overflow-y: scroll;
+        }
+
+        #backdrop {
+            color: var(--text-color);
+            z-index: 1;
+            overflow-y: scroll; /* Doit avoir le scroll aussi */
+            pointer-events: none; /* Laisse passer les clics vers le textarea */
+        }
+    </style>
+
+    <script>
+        // TA LISTE DE MOTS ET COULEURS ICI
+        const syntaxConfig = {
+            "local": "#ff4500",    // Orange-Rouge
+            "function": "#569cd6", // Bleu
+            "end": "#c586c0",      // Violet
+            "if": "#c586c0",
+            "then": "#c586c0",
+            "return": "#d16969",   // Rouge mat
+            "true": "#4ec9b0",     // Vert d'eau
+            "false": "#4ec9b0"
+        };
+
+        const area = document.getElementById('textb');
+        const high = document.getElementById('highlighting');
+        const backdrop = document.getElementById('backdrop');
+
+        function updateView() {
+            let content = area.value;
+
+            // Échappement HTML pour éviter les bugs avec < ou >
+            content = content.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+            // Application de la coloration via la liste
+            for (let word in syntaxConfig) {
+                let color = syntaxConfig[word];
+                let regex = new RegExp(`\\b${word}\\b`, 'g');
+                content = content.replace(regex, `<span style="color: ${color}; font-weight: bold;">${word}</span>`);
+            }
+
+            // On termine par un espace invisible pour gérer le décalage du dernier saut de ligne
+            high.innerHTML = content + (content.endsWith('\n') ? ' ' : '');
+        }
+
+        function syncScroll() {
+            backdrop.scrollTop = area.scrollTop;
+            backdrop.scrollLeft = area.scrollLeft;
+        }
+
+        // Initialisation
+        area.addEventListener('scroll', syncScroll);
+    </script>
     </div>
 </body>
 </html>

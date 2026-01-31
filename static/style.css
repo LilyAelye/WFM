@@ -50,6 +50,11 @@ textarea {
     overflow-x:hidden;
     transition: 1.2s cubic-bezier(0.165, 0.84, 0.44, 1);
 }
+textarea:focus{
+    outline: none;
+    color: #8bb1f8;
+
+}
 
 button[type="submit"] {
     background-color: #3b73db;
