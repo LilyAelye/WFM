@@ -1,4 +1,7 @@
 import os
+from build import pre_setupdep
+pre_setupdep()
+
 from colorama import (Fore, Back, Style)
 from consolemenu import clear_terminal
 from time import sleep
@@ -40,7 +43,7 @@ class setup_server():
 
         self.lookup_for_file('config/FSConfig.conf', '''
             port=2704
-            share_directory="/share"
+            share_directory=share/
         ''')
 
         self.lookup_for_file('config/SA.conf', '''
@@ -50,6 +53,6 @@ class setup_server():
 
 
 
-        sleep(2)
+        sleep(0.25)
         clear_terminal()
         print(f"{Fore.GREEN} Setup & checks are complete. {Fore.RESET}")

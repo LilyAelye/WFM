@@ -4,13 +4,7 @@
                             "crf":true,
                             "caf":true,
                             "password":"0",
-                            "login_enabled":true
-                        },
-                        "Eanyh":{
-                            "crf":true,
-                            "caf":true,
-                            "password":"Eah",
-                            "login_enabled":true
+                            "login_enabled":false
                         }
                     }
                 

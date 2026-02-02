@@ -6,25 +6,29 @@
     <title>{{title}}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="{{url_for('js', scr='UI.js')}}"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
 </head>
 <body>
     <nav>
         <h1>
             {{title}}
         </h1>
+        
+
         <form action="/sl" method="post">
             <select name="language" id="language">
                 <option value="en" {% if language == 'en' %}selected{% endif %}>English</option>
                 <option value="es" {% if language == 'es' %}selected{% endif %}>Español</option>
                 <option value="fr" {% if language == 'fr' %}selected{% endif %}>Français</option>
-                <option value="de" {% if language == 'de' %}selected{% endif %}>Deutsch</option>
+                <option value="de" {% if language == 'de' %}selected{% endif %}>Duetsch</option>
             </select>
             <button type="submit">Set Language</button>
             
         </form>
     </nav>
-    <div class="middle">
-        <nav>
+    <div class="middle" style="width: 100%;">
+        <nav class="darker">
             <h2>
             {% if language == 'en' %}
             Shared Files
@@ -39,7 +43,15 @@
             {% endif %}
             </h2>
             <div style="width: 20px;"></div>
-            <button type="submit" onclick="Create_UI('New Folder', ['name'], '{{path}}')">Create New Folder </button>
+            {% if language == 'en' %}
+                <button type="submit" onclick="Create_UI('New Folder', ['name'], '{{path}}')">Create new folder </button>
+            {% elif language == 'fr' %}
+                <button type="submit" onclick="Create_UI('New Folder', ['name'], '{{path}}')">Créer un nouveau dossier </button>
+            {% elif language == 'de' %}
+                <button type="submit" onclick="Create_UI('New Folder', ['name'], '{{path}}')">Neuen Ordner erstellen </button>
+            {% elif language == 'es' %}
+                <button type="submit" onclick="Create_UI('New Folder', ['name'], '{{path}}')">Crear nueva carpeta </button>
+            {% endif %}
             <div style="width: 20px;"> </div>
             <button type="submit" onclick="Create_UI('New File', ['name'], '{{path}}')">Create New File</button>
             
@@ -49,16 +61,26 @@
 
     </div>
     <div class="middle" style="background-color: rgb(41, 41, 41); height: 50svh">
-        <ul>
+        <ul style="width:100%;height:100%">
             {% for file in files %}
-            <li>
+            <li class="share_object">
                {% if file.is_dir %}
                
                    <a href="{{ url_for('share', path=(path or 'share') ~ '/' ~ file.name) }}" style="color:aqua">
-                    {{file.name}}/   
+                    <img src="static/folder.png" alt="folder icon" style="scale: 0.8;"> {{file.name}}/
                 </a>
                {% else %}
-                   <a href="{{url_for('editor', path=path+'/'+file.name)}}">{{ file.name }}</a>
+                   <a href="{{url_for('editor', path=path+'/'+file.name)}}">
+                    {% if file.name.endswith('.py') %}
+                        <img src="static/script.png" alt="(script icon)" >
+                    {% elif file.name.endswith('.lua') or file.name.endswith('.c') or file.name.endswith('.cs') or file.name.endswith('.cpp') or file.name.endswith('.rs') %}
+                        <img src="static/script.png" alt="(script icon)" >
+                    {% elif file.name.endswith('.png') or file.name.endswith('.bmp') or file.name.endswith('.svg')  %}
+                        <img src="static/imgfile.png" alt="(img)" >
+                    {% else %}
+                        <img src="static/file.png" alt="(file png)" >
+                    {% endif %}
+                    {{ file.name }}</a>
                {% endif %}
             </li>
             {% endfor %}
@@ -86,12 +108,58 @@
                     .catch(c =>{
                         console.log('errored.')
                     })
-                    link.textContent = '^root';
+                    link.innerHTML = '<img src="static/folder.png" alt="Folder png"> ^root';
+                    link.style.color = "lightpink";
+                    link.style.backgroundColor = "black"
                     li.appendChild(link);
                     document.querySelector('ul').insertBefore(li, document.querySelector('ul').firstChild);
                 }
             </script>
         </ul>
     </div>
+    <nav style="position:fixed; bottom:0px; width:98%; height:2.5svh">
+        <h3 id="cpuu">
+            CPU: {{cpuusage}}%
+        </h3>
+        <h5 id="disku">
+            [{{diskusage}} left] Disk
+        </h5>
+        <h5 id="vram_percent">
+            {{vrp}}% VRAM
+        </h5>
+        <div id="INT" style="max-height: 2.5svh;" class="limited internet_font">
+                <div class="loading_indicator"></div>
+        </div>
+        <script>
+
+            var diskuser = document.getElementById('disku')
+            var cpuuser = document.getElementById('cpuu')
+            var vram_percent = document.getElementById('vram_percent')
+            var internet_symbol = document.getElementById('INT')
+            const socket = io()
+            socket.on('connect',()=>{
+                console.log('connected to socket. ', socket.id)
+
+                
+
+            })
+            socket.on('update',(updinfo => {
+                var disk = updinfo["diskusage"]
+                var cpu = updinfo["cpuusage"]
+                var vram_u = updinfo["vrp"]
+                var internet= updinfo["isup"]
+                //console.log(internet)
+                cpuuser.innerText = "CPU: "+cpu+"%"
+                diskuser.innerText = "["+(disk||"?") +" available] Disk"
+                vram_percent.innerText = vram_u+"/100% VRAM"
+                internet_symbol.innerHTML = (internet) == true && '<img src="static/Connected.png" alt="Connected to the internet" style="width:fit-content"> Connected' || '<img src="static/noconnect.png" alt="No Internet.." style="width: fit-content"> No Connection'
+            }))
+
+            setInterval(function() {
+                socket.emit('update')
+                //console.log('emitted')
+            }, 50)
+        </script>
+    </nav>
 </body>
 </html>

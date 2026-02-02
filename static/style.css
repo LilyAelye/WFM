@@ -21,6 +21,10 @@ nav {
     width:inherit; height:8vh; display:flex; align-items:center; justify-content:space-between; padding: 0 20px;
 }
 
+nav:is(.darker) {
+    background-color: #163061;
+}
+
 div:is(.middle) {
     /* puts the div in the center of the page (not in height but only on the X axis) */
     display: flex;
@@ -95,4 +99,49 @@ a {
 ul {
     list-style-type: none;
     padding: 0;
+}
+
+/* Styles for deffirent ressults */
+
+.error {
+    color:red
+}
+
+.errormsg {
+    color:white;
+    background-color: red;
+
+}
+
+/* Instance specefic */
+.share_object {
+    width:100%;
+    height:auto;
+    background-color: rgba(54, 54, 54, 0.5);
+    margin-bottom:10px
+}
+
+.limited {
+    height: fit-content;
+    margin-right: 10px;
+    max-width: 250px;
+}
+
+.internet_font {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Animated */
+.loading_indicator {
+    width: 5px;
+    height: 5px;
+    border-radius: 50px;
+    background-color: white;
+    animation: 0.65s loading ease;
+}
+
+@keyframes loading {
+    0% {border-radius: 25px; scale: 0.5;}
+    50% {border-radius: 50px; scale: 1;}
+    100% {border-radius: 25px; scale: 0.5;}
 }
