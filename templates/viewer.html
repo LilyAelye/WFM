@@ -6,6 +6,7 @@
     <title>{{title}}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="{{url_for('js', scr='UI.js')}}"></script>
+    <script src="{{url_for('js', scr='acc.js')}}"></script>
 </head>
 <body>
     <nav>
@@ -22,6 +23,19 @@
             <button type="submit">Set Language</button>
             
         </form>
+        <script>
+            createUI_User({
+                text : "{{username}}"
+            })
+        </script>
+        <h3 class="account"
+
+            style="z-index: 2;"
+            id="personaluser"
+            onclick="on_click()"
+        >
+            {{flu}}
+        </h3>
     </nav>
     <div class="middle">
         <nav>
@@ -47,8 +61,6 @@
     </div>
     <div class="middle" style="background-color: rgb(41, 41, 41); height: 9svh; justify-content: start; align-items: start;">
         <nav style="align-self:flex-start; background-color: #0000;">
-                <button type="submit" style="margin-right: 20px;" id="savebtn"><img src="static/save.png" alt="save"
-                    > Save</button>
                 <button type="submit" style="margin:0%;" 
                 id="downloadbuttn"
                 
@@ -63,213 +75,83 @@
         </nav>
     </div>
             
-    <style>
-        :root {
-            /* On fixe une hauteur de ligne en pixels pour éviter les décalages de calcul svh */
-            --line-height-px: 24px; 
-            --editor-width: 25svw;
-            --editor-height: 25svh;
-        }
+    <div style="width: 99%; height: 50%;">
+        {% if isvideo == true %}
+            <video id="vid" src='/download/?path="{{file}}"' style="width: 50svw; height:50svh">
+                
+            </video>
+            <div>
+                    <div style="max-height: 30px;">
+                        <button id="playpause" type="submit" style="background-color: #9995;"><img src="static/pausenew.png" alt="Play/Pause"></button>
+                    <p id="playbacktime"></p>
+                    </div>
 
-        .editor-wrapper {
-            position: relative;
-            width: var(--editor-width);
-            height: var(--editor-height);
-            background: #1e1e1e;
-            border: 1px solid #333;
-            overflow: hidden; /* Empêche les fuites visuelles */
-            min-width:200px
-        }
+                    <script>
+                        var play_pause_button = document.getElementById('playpause')
+                        var duration = NaN
+                        var duration_string = "00:00"
+                        let playbacktimer = document.getElementById('playbacktime')
+                        var info_label = null
+                        function convert_to_string(params) {
+                            let calculator = params.a
+                            let calculated_time = ""
+                            calculated_time = String(Math.floor(calculator / 60)).padStart(2, '0') + ":" + String(Math.floor(calculator % 60)).padStart(2, '0')
+                            return calculated_time
+                        }
+                        
+                        function onendedVid() {
+                                vid.currentTime = 0;
+                                vid.style.filter = "blur(5px)"
+                                var info_label = document.createElement("h3")
+                                info_label.innerText = "You finished viewing this video."
+                                info_label.style.color = 'white'
+                                
+                        }
 
-        .common-style {
-            margin: 0;
-            padding: 0px;
-            font-family: 'Consolas', monospace;
-            font-size: 16px;
-            line-height: var(--line-height-px);
-            box-sizing: border-box; /* Crucial pour que le padding soit inclus dans les 25svw */
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            tab-size: 4;
-        }
+                        vid.addEventListener("loadedmetadata", () => {
+                                console.log('loaded metadata: ', vid.duration)
+                                duration = vid.duration
+                                duration_string = convert_to_string({a:duration})
+                                console.log(duration_string)
+                            })
+                        play_pause_button.onclick = function() {
+                            var vid = document.getElementById('vid')
+                            var lio = document.createElement("video")
+                            
 
-        #textb {
-            background: transparent;
-            color: transparent; /* CACHE LE TEXTE BLANC */
-            caret-color: white; 
-            z-index: 2;
-            resize: none;
-            border: none;
-            outline: none;
-            overflow-y: auto;
-        }
+                            vid.onplay = function() {
+                                console.log('played!')
+                                vid.style.filter = "blur(0px)"
+                            }
+                            
 
-        #backdrop {
-            color: #d4d4d4;
-            z-index: 1;
-            overflow-y: auto;
-            pointer-events: none;
-        }
-
-        /* On cache la scrollbar du fond pour éviter le "double trait" */
-        #backdrop::-webkit-scrollbar { width: 0; }
-    </style>
-
-    <div class="editor-wrapper"><div id="backdrop" class="common-style"><div id="highlighting"></div></div><textarea id="textb" class="common-style" spellcheck="false"  oninput="updateView()" onscroll="syncScroll()">{{content}}</textarea></div>
-
-    <script>
-        // TA LISTE DE MOTS ET COULEURS ICI
-        const allSyntaxes = {
-            "lua": {
-                "keywords": ["local", "function", "end", "if", "then", "else", "return", "true", "false", "print"],
-                "boolean": ["true","false"],
-                "function": ["!!!!"],
-                "colors": {
-                    "keyword": "#ff4500",
-                    "symbol": "#d4d4d4",
-                    "number": "#4ec9b0",
-                    "comment": "#6a9955",
-                    "boolean": "#cf03fc",
-                    "function":"#fcf403"
-                },
-                "commentPrefix": "--"
-            },
-            "python": {
-                "keywords": ["def", "class", "import", "from", "as", "if", "elif", "else", "for", "while", "in", "return", "print"],
-                "boolean":["True","False"],
-                "function":["!!!!"],
-                "colors": {
-                    "keyword": "#569cd6",
-                    "symbol": "#d4d4d4",
-                    "number": "#b5cea8",
-                    "comment": "#6a9955",
-                    "string": "#ce9178",
-                    "boolean": "#cf03fc",
-                    "function": "#fcf403"
-                },
-                "commentPrefix": "#"
-            },
-            "markdown": {
-                "keywords": [":::"],
-                "boolean": [":::"],
-                "function": ["::::"],
-                "colors": {
-                    "keyword": "#569cd6",
-                    "symbol": "#d4d4d4",
-                    "number": "#b5cea8",
-                    "comment": "#6a9955",
-                    "string": "#ce9178",
-                    "boolean": "#cf03fc",
-                    "function": "#fcf403"
-                }
-            }
-        };
-        const colorgeneral = {
-            "&num": "#fc9403",
-            "&om": "#7b6da6",
-            "&op": "#7b6da6",
-            "&od": "#7b6da6",
-            "&multi": "#7b6da6",
-            "&nl": "#ffbe7d"
-        }
-
-        const area = document.getElementById('textb');
-        const high = document.getElementById('highlighting');
-        const backdrop = document.getElementById('backdrop');
-        let currentLang = "markdown"; // Changé dynamiquement selon le fichier ouvert
-        if ("{{file}}".endsWith('.py')) {
-            currentLang = "python"
-        } else if ("{{file}}".endsWith('.lua')) {
-            currentLang = "lua"
-        }
-        function updateView() {
-            const config = allSyntaxes[currentLang]
-            let content = area.value;
-
-            // 1. Échappement des caractères HTML (sinon les <span> cassent tout)
-            content = content.replace(/&/g, "&amp;")
-            
-            content = content.replace(/<=/g, "&ue")
-            content = content.replace(/>=/g, "&oe")
-            content = content.replace(/</g, "&lt")
-            content = content.replace(/>/g, "&gt")
-            content = content.replace(/=/g, "&eq")
-            
-            content = content.replace('+', "&op")
-            content = content.replace(/-/g, "&om")
-            content = content.replace('/', "&od");
-            content = content.replace('*', "&multi")
-            content = content.replace(/\n/g, "&nl")
-
-            let numbersList = [];
-            content = content.replace(/\d+/g, (match) => {
-                numbersList.push(match); // On stocke le nombre
-                return `&num${numbersList.length - 1} `; // On crée un placeholder unique ex: &num0
-            });
-
-            // 2. Application des couleurs
-            let windex = -1
-            let ite = 0
-            
-            config.keywords.forEach(word => {
-                let regex = new RegExp(`\\b${word}\\b`, 'g');
-                content = content.replace(regex, `<span style="color: ${config.colors.keyword};">${word}</span>`);
-            });
-            config.boolean.forEach(word => {
-                let regex = new RegExp(`\\b${word}\\b`, 'g');
-                content = content.replace(regex, `<span style="color: ${config.colors.boolean};">${word}</span>`);
-            });
-            config.function.forEach(word => {
-                let regex = new RegExp(`\\b${word}\\b`, 'g');
-                content = content.replace(regex, `<span style="color: ${config.colors.function};">${word}</span>`);
-            })
-  
-            const symbolColors = {
-                "&eq": "=", "&op": "+", "&om": "-", "&od": "/", 
-                "&oe": ">=", "&ue": "<=", "&multi": "*", "&nl": " ⁋ \n"
-            };
-            // Remplacement des opérateurs
-            for (let s in symbolColors) {
-                let reg = new RegExp(s, 'g');
-                content = content.replace(reg, `<span style="color: ${colorgeneral[s] || '#ffffff'};">${symbolColors[s]}</span>`);
-            }
-
-            // Replace newlines with span elements
-
-
-            // Remplacement des nombres indexés
-            numbersList.forEach((val, i) => {
-                let reg = new RegExp(`&num${i}\\s`, 'g'); // On cherche le placeholder spécifique
-                content = content.replace(reg, `<span style="color: ${colorgeneral['&num']};">${val}</span>`);
-            });
-
-            // 3. Correction du bug de saut de ligne final
-            // Si le texte finit par un retour à la ligne, on ajoute un espace pour forcer le div à "pousser"
-            high.innerHTML = content + (content.endsWith('\n') ? ' ' : '');
-            syncScroll();
-        }
-
-        function syncScroll() {
-            backdrop.scrollTop = area.scrollTop;
-            backdrop.scrollLeft = area.scrollLeft;
-        }
-
-        // Initialisation
-        area.addEventListener('scroll', syncScroll);
-        updateView()
-
-        var savebtn = document.getElementById('savebtn')
-        savebtn.onclick = function() {
-            var content = area.value
-            content = content.replace(/\n/g, "scnl")
-            fetch(`/save/?path="{{file}}&content=${content}"`)
-        }
-    </script>
+                            vid.onended = function() {
+                                console.log('ended.');
+                                onendedVid()
+                            }
+                            
+                            if (duration != "NaN") {
+                                if (!vid.paused) {
+                                    vid.pause()
+                                } else {
+                                    vid.play()
+                                }
+                            }
+                            
+                            vid.addEventListener("timeupdate", (e) => {
+                                console.log(convert_to_string({a: vid.currentTime}) + " / " + duration_string)
+                                playbacktimer.innerText = convert_to_string({a: vid.currentTime}) + '/'  + duration_string
+                                if (vid.currentTime == duration) {
+                                    console.log('done!')
+                                    onendedVid()
+                                }
+                            })
+                        }
+                    </script>
+                </div>
+        {% else %}
+            <img src='/download/?path="{{file}}"' alt="Loading image">
+        {% endif %}
     </div>
 </body>
 </html>

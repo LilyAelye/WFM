@@ -18,7 +18,13 @@ from consolemenu import clear_terminal
 from threading import Thread
 from time import sleep
 from colorama import (Fore, Back, Style)
-import psutil
+import psutil, mimetypes
+
+def is_image(file_path):
+    return mimetypes.guess_type(file_path)[0].startswith('image')
+
+def is_video(file_path):
+    return mimetypes.guess_type(file_path)[0].startswith('video')
 
 
 class Fileshare:
@@ -80,6 +86,7 @@ class Fileshare:
         def contextproc():
             # foramt disk usage of free (%) in 0.[xxx] (three dots fot the deciamls)
             formatted, cpu, vram_perc, vram_max, isup = self.fetch_info()
+            FIRSTLETTERUSERNAME = request.cookies.get('usr','-')[0].capitalize() or "N/A"
             return {
                 "title": self.title,
                 "language": request.cookies.get('language','en'),
@@ -87,13 +94,20 @@ class Fileshare:
                 "cpuusage": cpu,
                 "vrp":vram_perc,
                 "vrm":vram_max,
-                "isup": isup
+                "isup": isup,
+                "flu":FIRSTLETTERUSERNAME,
+                "username":request.cookies.get('usr','?')
             }
 
         def VerifyLogin(username, password):
+            import json
             with open("config/WFMUSER.json", 'r') as f:
-                import json
+                
                 data = json.load(f)
+            with open('config/SA.json','r') as f2:
+                    loaded2 = json.load(f2)
+                    if username in loaded2:
+                         data = loaded2
             #print(data)
             if username in data and data[username]['password'] == password and data[username]['login_enabled'] is True:
                 return True
@@ -152,9 +166,14 @@ class Fileshare:
                 content = ""
             
                 with open(scr,'r') as f:
-                    content= f.read()
+                    if not is_image(scr) and not is_video(scr):
+                        content= f.read()
                     name = f.name
-                return render_template('editor.html',content=content, file=name, path=request.referrer)
+                if is_image(scr) or is_video(scr):
+                    print(scr)
+                    return render_template('viewer.html',file = scr, isvideo= is_video(scr), path=request.referrer)
+                else:
+                    return render_template('editor.html',content=content, file=name, path=request.referrer)
             else:
                 return redirect(request.referrer)
         #[[
@@ -190,6 +209,7 @@ class Fileshare:
                 })
 
             if pathlib.isfile(fs_path):
+                print(request.referrer)
                 return send_file(fs_path, as_attachment=True)
 
             return render_template(
@@ -216,12 +236,9 @@ class Fileshare:
             if request.cookies.get('pwd') and request.cookies.get('usr'):
                 pwd :str = request.cookies.get('pwd')
                 usr :str = request.cookies.get('usr')
-
-                with open("config/WFMUSER.json", 'r') as f:
-                    import json
-                    data = json.load(f)
+                success = VerifyLogin(usr,pwd)
                #print(data)
-                if usr in data and data[usr]['password'] == pwd:
+                if success:
                     return redirect('/share')
                 else:
                     return redirect('/log')
@@ -234,9 +251,15 @@ class Fileshare:
             if request.method == 'POST':
                 username = request.form['username']
                 password = request.form['password']
+                import json
                 with open("config/WFMUSER.json", 'r') as f:
-                    import json
+                    
                     data = json.load(f)
+                with open('config/SA.json','r') as f2:
+                    loaded2 = json.load(f2)
+                    if username in loaded2:
+                         data = loaded2
+
                 #print(data)
                 if username in data and data[username]['password'] == password and data[username]['login_enabled'] is True:
                     resp = make_response(redirect('/'))
@@ -278,7 +301,7 @@ class Fileshare:
                 import regex
                 name = regex.sub(r'.*\.', '', path)
                 print(name)
-                return send_file(path,download_name='Downloaded.'+name, as_attachment=True)
+                return send_file(path,download_name='Downloaded.'+name, as_attachment=False)
         
         @rt('/save/')
         def save():

@@ -145,3 +145,25 @@ ul {
     50% {border-radius: 50px; scale: 1;}
     100% {border-radius: 25px; scale: 0.5;}
 }
+
+
+/* object */
+.account {
+    background-color: rgba(0, 172, 163, 0.822);
+  border-radius: 50px;
+  border: black 5px;
+  width: 40px;
+  height: 40px;
+  font-size: 22px;
+  justify-content: center;
+  display: flex;
+  text-align: center;
+  text-anchor: middle;
+align-items: center;
+    transition: 1.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.account_bg {
+    transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1)
+    ;
+}

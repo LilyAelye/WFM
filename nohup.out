@@ -1,34 +1,0 @@
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: console-menu in /var/data/python/lib/python3.13/site-packages (0.8.0)
-Requirement already satisfied: six in /var/data/python/lib/python3.13/site-packages (from console-menu) (1.17.0)
-Requirement already satisfied: ansiwrap in /var/data/python/lib/python3.13/site-packages (from console-menu) (0.8.4)
-Requirement already satisfied: textwrap3>=0.9.2 in /var/data/python/lib/python3.13/site-packages (from ansiwrap->console-menu) (0.9.2)
-c]104[!p[?3;4l[4l>[?69lc]104[!p[?3;4l[4l>[?69lInstalling missing dependency: console-menu
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/config [0m is validated.
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/share [0m is validated.
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/templates [0m is validated.
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/static [0m is validated.
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/JS [0m is validated.
-[46m[95m config/WFMUSER.json [0m was validated.
-[46m[95m config/FSConfig.conf [0m was validated.
-[46m[95m config/SA.conf [0m was validated.
-[32m Setup & checks are complete. [39m
-[44m[92m Booting server on 2704 [0m
- * Serving Flask app '/home/amethyst/Documents/repos_maintenance/WFM/WFM/flasky.py'
- * Debug mode: on
-Defaulting to user installation because normal site-packages is not writeable
-Requirement already satisfied: console-menu in /var/data/python/lib/python3.13/site-packages (0.8.0)
-Requirement already satisfied: six in /var/data/python/lib/python3.13/site-packages (from console-menu) (1.17.0)
-Requirement already satisfied: ansiwrap in /var/data/python/lib/python3.13/site-packages (from console-menu) (0.8.4)
-Requirement already satisfied: textwrap3>=0.9.2 in /var/data/python/lib/python3.13/site-packages (from ansiwrap->console-menu) (0.9.2)
-c]104[!p[?3;4l[4l>[?69lc]104[!p[?3;4l[4l>[?69lInstalling missing dependency: console-menu
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/config [0m is validated.
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/share [0m is validated.
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/templates [0m is validated.
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/static [0m is validated.
-[46m[95m /home/amethyst/Documents/repos_maintenance/WFM/WFM/JS [0m is validated.
-[46m[95m config/WFMUSER.json [0m was validated.
-[46m[95m config/FSConfig.conf [0m was validated.
-[46m[95m config/SA.conf [0m was validated.
-[32m Setup & checks are complete. [39m
-[44m[92m Booting server on 2704 [0m

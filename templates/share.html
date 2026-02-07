@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="{{url_for('js', scr='UI.js')}}"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-
+    <script src="{{url_for('js', scr='acc.js')}}"></script>
 </head>
 <body>
     <nav>
@@ -26,6 +26,19 @@
             <button type="submit">Set Language</button>
             
         </form>
+        <script>
+            createUI_User({
+                text : "{{username}}"
+            })
+        </script>
+        <h3 class="account"
+
+            style="z-index: 2;"
+            id="personaluser"
+            onclick="on_click()"
+        >
+            {{flu}}
+        </h3>
     </nav>
     <div class="middle" style="width: 100%;">
         <nav class="darker">
