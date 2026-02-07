@@ -1,0 +1,9 @@
+{
+    "ADMIN" : {
+        "password": "ADM90X!",
+        "login_enabled": true,
+        "caf":true,
+        "crf":true
+    }
+    
+}

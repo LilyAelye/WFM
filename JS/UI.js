@@ -12,6 +12,7 @@ function Create_UI(Purpose, inputs=['name'], path) {
     ui.style.zIndex = '10000'
     ui.style.fontFamily = 'Arial, sans-serif'
     ui.style.textAlign = 'center'
+    
 
     var bg = document.createElement('div')
     bg.id = 'ui-bg'

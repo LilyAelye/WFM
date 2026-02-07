@@ -46,9 +46,13 @@ class setup_server():
             share_directory=share/
         ''')
 
-        self.lookup_for_file('config/SA.conf', '''
-            name="ADMIN"
-            password="ADM90X!"
+        self.lookup_for_file('config/SA.json', '''
+            {
+    "ADMIN" : {
+        "password": "ADM90X!"
+    }
+    
+}
         ''')
 
 
