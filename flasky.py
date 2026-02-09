@@ -150,6 +150,67 @@ class Fileshare:
         def js(scr):
             return send_from_directory('JS', scr)
 
+        @rt('/admin')
+        def  admin_pannel():
+            pwd, usr = request.cookies.get('pwd'),request.cookies.get('usr')
+            if not VerifyLogin(usr, pwd):
+                return redirect('/log')
+            import json
+            with open('config/SA.json','r') as f2:
+                    loaded2 = json.load(f2)
+                    if usr in loaded2:
+                         data = loaded2
+            
+            if not data:
+                return redirect('/share')
+            else:
+                if data[usr]['password'] == pwd:
+                    with open('config/WFMUSER.json', 'r') as wfmus:
+                        usrs = json.load(wfmus)
+                    return render_template('admin.html', usrs=usrs)
+        
+        @rt('/createacc/', methods=['POST'])
+        def create_acc():
+            pwd, usr = request.cookies.get('pwd'),request.cookies.get('usr')
+            if not VerifyLogin(usr, pwd):
+                return redirect('/log')
+            import json
+            with open('config/SA.json','r') as f2:
+                    loaded2 = json.load(f2)
+                    if usr in loaded2:
+                         data :dict = loaded2
+            if not data:
+                return redirect('/share')
+            else:
+                if data[usr]['password'] == pwd:
+                    new_user, new_pass= request.form.get('name',None),request.form.get('password','default')
+                    if new_user == None:
+                        print('error creating acc: invalid username')
+                        return redirect('/admin')
+                    if new_user in data:
+                        return redirect('/admin')
+
+                    with open('config/WFMUSER.json', 'r') as WFMUSERLOAD:
+                        usr_data = json.load(WFMUSERLOAD)
+ 
+                    new_data = {}
+                    for key, data in usr_data.items():
+                        print(key, data)
+                        new_data[key] = data
+                    new_data[new_user] = {
+                        'caf': True,
+                        'crf': True,
+                        'login_enabled': True,
+                        'password': new_pass
+                    }
+                    
+                    print(new_data)
+                    newdata : dict = new_data
+                    newdata = json.dumps(newdata)
+                    with open('config/WFMUSER.json','w') as conf_wfmuser:
+                        conf_wfmuser.write(newdata)
+                    return redirect('/share')
+
         @rt('/editor')
         def editor():
             base = self.sharedirectory
@@ -378,4 +439,5 @@ class Fileshare:
         clear_terminal()
         print(f"{Back.GREEN + Fore.BLACK} Server is started. {Style.RESET_ALL}")
         print(f"{Back.BLUE + Fore.LIGHTGREEN_EX} Booted server on {self.port} {Style.RESET_ALL}")
+
         

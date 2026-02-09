@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{url_for('static',filename='app.css')}}">
+    <script src="{{url_for('js', scr='UI.js')}}"></script>
+    
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="{{url_for('js', scr='acc.js')}}"></script>
+</head>
+<body>
+    <nav>
+        <h1>
+            {{title}}
+        </h1>
+        
+
+        <form action="/sl" method="post">
+            <select name="language" id="language">
+                <option value="en" {% if language == 'en' %}selected{% endif %}>English</option>
+                <option value="es" {% if language == 'es' %}selected{% endif %}>Español</option>
+                <option value="fr" {% if language == 'fr' %}selected{% endif %}>Français</option>
+                <option value="de" {% if language == 'de' %}selected{% endif %}>Duetsch</option>
+            </select>
+            <button type="submit">Set Language</button>
+            
+        </form>
+        <script>
+            createUI_User({
+                text : "{{username}}"
+            })
+        </script>
+        <h3 class="account"
+
+            style="z-index: 2;"
+            id="personaluser"
+            onclick="on_click()"
+        >
+            {{flu}}
+        </h3>
+    </nav>
+    <div class="middle" style="width: 100%;">
+        <nav class="darker">
+            <h2>
+            {% if language == 'en' %}
+            Admin pannel
+            {% elif language == 'es' %}
+                Archivos compartidos
+            {% elif language == 'fr' %}
+                Panneau d'administrateur
+            {% elif language == 'de' %}
+                Geteilte Dateien
+            {% else %}
+                Shared Files
+            {% endif %}
+            </h2>
+            <div style="width: 20px;"></div>
+            {% if language == 'en' %}
+                <button type="submit" onclick="simpleui(['name','password'],'Create a new account')">Create new account </button>
+            {% elif language == 'fr' %}
+                <button type="submit" onclick="simpleui(['name','password'],'Créer un nouveau compte')">Créer un nouveau compte </button>
+            {% elif language == 'de' %}
+                <button type="submit" onclick="simpleui(['name','password'],'-')">Neuen Ordner erstellen </button>
+            {% elif language == 'es' %}
+                <button type="submit" onclick="simpleui(['name','password'],'-')">Crear nueva carpeta </button>
+            {% endif %}
+            
+        </nav>
+
+        <br>
+
+    </div>
+
+    <div>
+        {% for usr in usrs %}
+            <div class="usrlist">
+                <img src="{{url_for('static',filename='usricon.png')}}" alt="(usricon)" style="margin-top: 10px;"> {{usr}}
+                <div style="width: 10px; height: 100%; color: gray; margin-left: 20px; margin-right: 20px;"></div>
+                
+            </div>
+        {% endfor %}
+    </div>
+    
+    <nav style="position:fixed; bottom:0px; width:98%; height:2.5svh">
+        <h3 id="cpuu">
+            CPU: {{cpuusage}}%
+        </h3>
+        <h5 id="disku">
+            [{{diskusage}} left] Disk
+        </h5>
+        <h5 id="vram_percent">
+            {{vrp}}% VRAM
+        </h5>
+        <div id="INT" style="max-height: 2.5svh;" class="limited internet_font">
+                <div class="loading_indicator"></div>
+        </div>
+        <script>
+
+            var diskuser = document.getElementById('disku')
+            var cpuuser = document.getElementById('cpuu')
+            var vram_percent = document.getElementById('vram_percent')
+            var internet_symbol = document.getElementById('INT')
+            const socket = io()
+            socket.on('connect',()=>{
+                console.log('connected to socket. ', socket.id)
+
+                
+
+            })
+            socket.on('update',(updinfo => {
+                var disk = updinfo["diskusage"]
+                var cpu = updinfo["cpuusage"]
+                var vram_u = updinfo["vrp"]
+                var internet= updinfo["isup"]
+                //console.log(internet)
+                cpuuser.innerText = "CPU: "+cpu+"%"
+                diskuser.innerText = "["+(disk||"?") +" available] Disk"
+                vram_percent.innerText = vram_u+"/100% VRAM"
+                internet_symbol.innerHTML = (internet) == true && '<img src="static/Connected.png" alt="Connected to the internet" style="width:fit-content"> Connected' || '<img src="static/noconnect.png" alt="No Internet.." style="width: fit-content"> No Connection'
+            }))
+
+            setInterval(function() {
+                socket.emit('update')
+                //console.log('emitted')
+            }, 50)
+        </script>
+    </nav>
+</body>
+</html>
