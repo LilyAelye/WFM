@@ -31,6 +31,10 @@
                 text : "{{username}}"
             })
         </script>
+        {% if admin == True %}
+            <button type="submit" onclick="window.location.href = '/admin'">Pannel</button>
+            <button type="submit" onclick="window.location.href = '/share'">Share</button>
+        {% endif %}
         <h3 class="account"
 
             style="z-index: 2;"
@@ -66,6 +70,9 @@
                 <button type="submit" onclick="Create_UI('New Folder', ['name'], '{{path}}')">Crear nueva carpeta </button>
             {% endif %}
             <div style="width: 20px;"> </div>
+            <button type="submit" onclick="simpleui(['file'],'Import files','upload/',['file'])">Import Files</button>
+            <button type="submit" onclick="simpleui(['file'],'Import directory','uploaddirectory/',['dir'])">Import Directory</button>
+            <div style="width: 20px;"> </div>
             <button type="submit" onclick="Create_UI('New File', ['name'], '{{path}}')">Create New File</button>
             
         </nav>
@@ -73,7 +80,7 @@
         <br>
 
     </div>
-    <div class="middle" style="background-color: rgb(41, 41, 41); height: 50svh">
+    <div class="middle global" style="height: 50svh">
         <ul style="width:100%;height:100%">
             {% for file in files %}
             <li class="share_object">
@@ -95,6 +102,9 @@
                     {% endif %}
                     {{ file.name }}</a>
                {% endif %}
+               <button style="background-color: var(--secondary); border: none; border-radius: 20px;" onclick="fetch(`{{url_for('delete')}}?path={{(path or 'share') ~ '/' ~ file.name}}`, {method:'POST'}).then( data => {location.reload()})">
+                <img src="static/delfile.png" alt="delete" style="width: 20px; height: 20px; border-radius: 20px; margin-top: 20%; background:#0000">
+               </button>
             </li>
             {% endfor %}
             <script>

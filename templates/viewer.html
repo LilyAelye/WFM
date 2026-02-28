@@ -77,7 +77,7 @@
             
     <div style="width: 99%; height: 50%;">
         {% if isvideo == true %}
-            <video id="vid" src='/download/?path="{{file}}"' style="width: 50svw; height:50svh">
+            <video id="vid" src='/download/?path="{{file}}"' style="max-width: 50svw; max-height:50svh">
                 
             </video>
             <div>
@@ -150,7 +150,7 @@
                     </script>
                 </div>
         {% else %}
-            <img src='/download/?path="{{file}}"' alt="Loading image">
+            <img src='/download/?path="{{file}}"' alt="Loading image" style="max-width: 50svw; max-height:50svh">
         {% endif %}
     </div>
 </body>

@@ -1,10 +1,1 @@
-
-                    {
-                        "default":{
-                            "crf":true,
-                            "caf":true,
-                            "password":"0",
-                            "login_enabled":true
-                        }
-                    }
-                
+{"default": {"caf": true, "crf": true, "login_enabled": true, "password": "0"}}

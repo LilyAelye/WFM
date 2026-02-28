@@ -4,7 +4,7 @@ var toggled = false
 function createUI_User(params) {
     UI = document.createElement("div")
     
-    UI.style.backgroundColor = 'rgb(54, 54, 54)'
+    UI.style.backgroundColor = 'var(--color-schema-3)'
     UI.style.borderRadius = "5px"
     UI.style.opacity = '0'
     UI.classList.add('account_bg')
@@ -18,8 +18,16 @@ function createUI_User(params) {
     let namelabel = document.createElement('h4')
     namelabel.innerText = params.text
     namelabel.style.color = 'white'
+
+    let Logout_button = document.createElement("button")
+    Logout_button.innerText = "Log out"
+    Logout_button.type = "submit"
+    Logout_button.onclick = function() {
+        window.location.href = "/logout"
+    }
     
     UI.append(namelabel)
+    UI.append(Logout_button)
     document.body.append(UI)
 
     setInterval(() => {

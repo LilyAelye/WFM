@@ -1,0 +1,36 @@
+/*
+Please
+this
+is
+a
+free
+project
+that
+required
+a
+lot
+of
+time
+please
+do
+not
+say
+that
+it's
+your's
+thanks.
+[LilyAelye # 2026 | 30th of January]
+
+/ * / */
+
+.forminpsettings {
+    /*not*/
+    position: fixed;
+}
+input:is(.forminpsettings) {
+        background-color: rgb(39, 39, 39);
+        border: none !important;
+        border-radius: 5px !important;
+        color: white !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    }

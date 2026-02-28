@@ -24,9 +24,8 @@ def pre_setupdep():
     for package in REQUIRED_PACKAGES:
         try:
             importlib.import_module(package.replace("-", "_"))
+            print(f"Package: {package} is already installed.")
         except ImportError:
             print(f"Installing missing dependency: {package}")
             install(package)
     
-    from consolemenu import clear_terminal
-    clear_terminal()
