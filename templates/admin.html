@@ -28,6 +28,10 @@
             <button type="submit">Set Language</button>
             
         </form>
+        {% if admin == True %}
+            <button type="submit" onclick="window.location.href = '/admin'">Pannel</button>
+            <button type="submit" onclick="window.location.href = '/share'">Share</button>
+        {% endif %}
         <script>
             createUI_User({
                 text : "{{username}}"
@@ -63,9 +67,9 @@
             {% elif language == 'fr' %}
                 <button type="submit" onclick="simpleui(['name','password'],'Créer un nouveau compte')">Créer un nouveau compte </button>
             {% elif language == 'de' %}
-                <button type="submit" onclick="simpleui(['name','password'],'-')">Neuen Ordner erstellen </button>
+                <button type="submit" onclick="simpleui(['name','password'],'Maak een nieuw account aan')">Maak een nieuw account aan </button>
             {% elif language == 'es' %}
-                <button type="submit" onclick="simpleui(['name','password'],'-')">Crear nueva carpeta </button>
+                <button type="submit" onclick="simpleui(['name','password'],'Crear una nueva cuenta')">Crear una nueva cuenta </button>
             {% endif %}
             
         </nav>
@@ -74,12 +78,38 @@
 
     </div>
 
-    <div>
-        {% for usr in usrs %}
-            <div class="usrlist">
-                <img src="{{url_for('static',filename='usricon.png')}}" alt="(usricon)" style="margin-top: 10px;"> {{usr}}
-                <div style="width: 10px; height: 100%; color: gray; margin-left: 20px; margin-right: 20px;"></div>
+    <div class="global-img">
+        {% for usr, datae in usrs.items() %}
+            <div class="usrlist"
+                style="
+                    display: flex;
+                "
+            >
                 
+                <img src="{{url_for('static',filename='usricon.png')}}" alt="(usricon)" style="margin-top: 10px;"> <p style="width: fit-content;">{{usr}}</p>
+                
+                <ul style="width: 10px; height: 90%; background-color: gray; margin-left: 20px; margin-right: 20px; border-radius: 20px;">
+                    
+                </ul>
+                <button onclick="
+                    fetch('/delacc/{{usr}}', {
+                        method:'POST'
+                    }).then(function(resp) {
+                        if (resp.ok) {
+                            location.reload()
+                        } else {
+                            console.log('error removing acc')
+                        }
+                    })
+                " style="width: fit-content; height: fit-content; background-color: rgba(131, 131, 131, 0.333); border-radius: 20px; border: none;">
+                    <img src="{{url_for('static',filename='removeuser.png')}}" alt="x">
+                </button>
+                 <ul style="width: 10px; height: 90%; background-color: gray; margin-left: 20px; margin-right: 20px; border-radius: 20px;">
+                    
+                </ul>
+                <p>
+                    Password: {{datae.password}}
+                </p>
             </div>
         {% endfor %}
     </div>

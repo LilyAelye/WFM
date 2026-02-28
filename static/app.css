@@ -28,7 +28,7 @@ thanks.
     position: fixed;
 }
 input:is(.forminpsettings) {
-        background-color: rgb(39, 39, 39) !important;
+        background-color: rgb(39, 39, 39);
         border: none !important;
         border-radius: 5px !important;
         color: white !important;

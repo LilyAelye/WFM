@@ -1,3 +1,5 @@
+import os
+
 from flask_socketio import (SocketIO as sio, emit, join_room, disconnect, close_room, leave_room)
 import logging
 from flask import (
@@ -14,17 +16,18 @@ from flask.logging import default_handler
 from os import path as pathlib, listdir
 from waitress import serve
 from werkzeug.security import (generate_password_hash, check_password_hash)
-from consolemenu import clear_terminal
+from consolemenu import (clear_terminal)
+
 from threading import Thread
 from time import sleep
 from colorama import (Fore, Back, Style)
 import psutil, mimetypes
 
 def is_image(file_path):
-    return mimetypes.guess_type(file_path)[0].startswith('image')
+    return (mimetypes.guess_type(file_path)[0] or "unkown").startswith('image')
 
 def is_video(file_path):
-    return mimetypes.guess_type(file_path)[0].startswith('video')
+    return (mimetypes.guess_type(file_path)[0] or "unkown").startswith('video')
 
 
 class Fileshare:
@@ -87,6 +90,15 @@ class Fileshare:
             # foramt disk usage of free (%) in 0.[xxx] (three dots fot the deciamls)
             formatted, cpu, vram_perc, vram_max, isup = self.fetch_info()
             FIRSTLETTERUSERNAME = request.cookies.get('usr','-')[0].capitalize() or "N/A"
+            def is_admin_acc():
+
+                ADMIN = False
+                import json
+                with open('config/SA.json','r') as f:
+                    if request.cookies.get('usr','-' ) in json.load(f):
+                        ADMIN = True
+                return ADMIN
+
             return {
                 "title": self.title,
                 "language": request.cookies.get('language','en'),
@@ -96,7 +108,8 @@ class Fileshare:
                 "vrm":vram_max,
                 "isup": isup,
                 "flu":FIRSTLETTERUSERNAME,
-                "username":request.cookies.get('usr','?')
+                "username":request.cookies.get('usr','?'),
+                "admin":is_admin_acc()
             }
 
         def VerifyLogin(username, password):
@@ -156,19 +169,57 @@ class Fileshare:
             if not VerifyLogin(usr, pwd):
                 return redirect('/log')
             import json
+            data = {}
             with open('config/SA.json','r') as f2:
-                    loaded2 = json.load(f2)
-                    if usr in loaded2:
+                loaded2 = json.load(f2)
+                if usr in loaded2:
                          data = loaded2
             
             if not data:
                 return redirect('/share')
             else:
                 if data[usr]['password'] == pwd:
+                    usrs = {}
                     with open('config/WFMUSER.json', 'r') as wfmus:
                         usrs = json.load(wfmus)
+                    usrs: dict
+                    
                     return render_template('admin.html', usrs=usrs)
         
+        @rt('/logout')
+        def lg_out():
+            req = redirect('/')
+            req.set_cookie('usr','0')
+            req.set_cookie('pwd','v')
+            return req
+        
+        @rt('/delacc/<acc>', methods=['POST'])
+        def del_acc(acc):
+            pwd, usr = request.cookies.get('pwd'),request.cookies.get('usr')
+            if not VerifyLogin(usr, pwd):
+                return redirect('/log')
+            import json
+            with open('config/SA.json','r') as f2:
+                    loaded2 = json.load(f2)
+                    if usr in loaded2:
+                         data :dict = loaded2
+            if not data:
+                return redirect('/share')
+            else:
+                if data[usr]['password'] == pwd:
+                    acc_to_del = acc
+                    print(acc_to_del)
+                    with open('config/WFMUSER.json', 'r') as WFMUSERLOAD:
+                        usr_data :dict = json.load(WFMUSERLOAD)
+                    if acc_to_del in usr_data:
+                        print("acc exists")
+                        usr_data.pop(acc_to_del)
+                    print(usr_data)
+                    newdata = json.dumps(usr_data)
+                    with open('config/WFMUSER.json','w') as conf_wfmuser:
+                        conf_wfmuser.write(newdata)
+                    return redirect('/share')
+
         @rt('/createacc/', methods=['POST'])
         def create_acc():
             pwd, usr = request.cookies.get('pwd'),request.cookies.get('usr')
@@ -228,7 +279,10 @@ class Fileshare:
             
                 with open(scr,'r') as f:
                     if not is_image(scr) and not is_video(scr):
-                        content= f.read()
+                        try: 
+                            content= f.read()
+                        except Exception as e:
+                            content = "File may be encrypted or codec cant read it."
                     name = f.name
                 if is_image(scr) or is_video(scr):
                     print(scr)
@@ -329,8 +383,9 @@ class Fileshare:
                     successasync('user '+ username + " has logged in.")
                     return resp
                 else:
-                    if data[username]['login_enabled'] is False:
-                        warnasync('A account that is disabled was tried to be logged into. Please go to WFMUSER.json to re-enable the account or use the web interface of the administrator.')
+                    if username in data:
+                        if data[username]['login_enabled'] is False:
+                            warnasync('A account that is disabled was tried to be logged into. Please go to WFMUSER.json to re-enable the account or use the web interface of the administrator.')
                         return render_template('login.html', error="account is disabled. Please contact the administrator or go to WFMUSER.json.")
                     return render_template('login.html', title=self.title, language=language, error="Invalid Credentials")
             else:
@@ -346,6 +401,56 @@ class Fileshare:
         @self.app.errorhandler(404)
         def page_not_found(err):
             return redirect('/', code=404)
+        
+        @rt('/upload/', methods=['GET','POST'])
+        def upload():
+            from werkzeug.utils import secure_filename
+            pwd :str = request.cookies.get('pwd')
+            usr :str = request.cookies.get('usr')
+            if not VerifyLogin(usr, pwd):
+                return redirect('/log')
+            if request.method == 'POST':
+                print(request.files.getlist('file').__len__() or request.files.get('file'))
+                if request.files.__len__() < 1:
+                    if request.files.get('file'):
+                        file = request.files.get('file')
+                        filename = secure_filename(file.filename)
+                        file.save(os.path.join(self.sharedirectory, filename))
+
+                else:
+                    for file in request.files.getlist('file'):
+                        print(file)
+                        filename = secure_filename(file.filename)
+                        file.save(os.path.join(self.sharedirectory, filename))
+
+                file = request.files['file']
+                
+                return ["Completed"],200
+            return ["Awaiting files"],206
+        @rt('/uploaddirectory/', methods=['GET','POST'])
+        def uploaddir():
+            from werkzeug.utils import secure_filename
+            pwd :str = request.cookies.get('pwd')
+            usr :str = request.cookies.get('usr')
+            if not VerifyLogin(usr, pwd):
+                return redirect('/log')
+            if request.method == 'POST':
+               
+                if request.files.__len__() == 1:
+                    if request.files.get('file'):
+                        file = request.files.get('file')
+                        filename = secure_filename(file.filename)
+                        os.makedirs(os.path.join(self.sharedirectory, filename))
+
+                else:
+                    for file in request.files.getlist('file'):
+                        filename = secure_filename(file.filename)
+                        os.makedirs(os.path.join(self.sharedirectory, filename))
+
+                file = request.files['file']
+                
+                return ["Completed"],200
+            return ["Awaiting files"],206
         
         @rt('/download/')
         def download():
@@ -363,7 +468,23 @@ class Fileshare:
                 name = regex.sub(r'.*\.', '', path)
                 print(name)
                 return send_file(path,download_name='Downloaded.'+name, as_attachment=False)
-        
+        @rt('/delete/', methods=['POST'])
+        def delete():
+            pwd :str = request.cookies.get('pwd')
+            usr :str = request.cookies.get('usr')
+            path = request.args.get('path')
+            path = path.strip('"')
+            if not VerifyLogin(usr, pwd):
+                return redirect('/log')
+            else:
+                if pathlib.exists(path):
+                    if pathlib.isdir(path):
+                        import shutil
+                        shutil.rmtree(path)
+                    else:
+                        os.remove(path)
+                    return redirect(request.referrer)
+                return redirect(request.referrer)
         @rt('/save/')
         def save():
             pwd :str = request.cookies.get('pwd')
@@ -428,16 +549,21 @@ class Fileshare:
             print(f"{Fore.YELLOW} [WARNING!] The server is running with no internet connection. Only this machine can access it via localhost:"+str(self.port))
         else:
             ip = get_local_ips()
-            print(f"{Back.BLACK + Fore.WHITE} WIFI/ETERNET is connected. Server will be accessible on your IP of the server: {Fore.GREEN}", ip+":"+str(self.port)+f"{Style.RESET_ALL}\n\n")
+            print(f"{Back.BLACK + Fore.WHITE} WIFI/ETERNET is connected. Server will be accessible on your IP of the server: {Fore.GREEN}http://{ip}:{self.port}{Style.RESET_ALL}\n\n")
         log = logging.getLogger('werkzeug')
         log.disabled = True
-        print(f"{Back.BLUE + Fore.LIGHTGREEN_EX} Booting server on {self.port} {Style.RESET_ALL}")
-        self.app.run(port=self.port,host='0.0.0.0', threaded=True, debug=True)
+        print(f"{Back.BLUE + Fore.LIGHTGREEN_EX} Booted server on {self.port} {Style.RESET_ALL}")
+        print(f"{Back.RED + Fore.WHITE} DO NOT EXPOSE THIS PC & PORT TO THE FULL INTERNET. THIS IS LOCAL ONLY {Style.RESET_ALL}")
+        try:
+            self.app.run(port=self.port,host='0.0.0.0', threaded=True, debug=True)
+        except Exception as e:
+            with open('error.txt', 'w') as f:
+                f.write(str(e))
+            TypeError(e)
         
         #server_thr = Thread(target=run_now,daemon=True)
         #server_thr.start()
         clear_terminal()
-        print(f"{Back.GREEN + Fore.BLACK} Server is started. {Style.RESET_ALL}")
-        print(f"{Back.BLUE + Fore.LIGHTGREEN_EX} Booted server on {self.port} {Style.RESET_ALL}")
-
+        print(f"{Fore.BLUE} Server & Share has succesfully shutdown. {Style.RESET_ALL}")
+        
         

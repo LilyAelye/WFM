@@ -89,7 +89,7 @@ function Create_UI(Purpose, inputs=['name'], path) {
     document.body.appendChild(ui)
 }
 
-function simpleui(inputs=['name'], purpose, route) {
+function simpleui(inputs=['name'], purpose, route, types=[]) {
     var class_ = "forminpsettings"
     var ui = document.createElement('div')
     ui.id = 'ui'
@@ -121,7 +121,7 @@ function simpleui(inputs=['name'], purpose, route) {
     document.body.appendChild(bg)
     var form = document.createElement('form')
     var title = document.createElement('h2')
-    title.innerText = 'Creating '+ purpose
+    title.innerText = purpose
     ui.appendChild(title)
 
     form.onsubmit = function(event) {
@@ -148,8 +148,17 @@ function simpleui(inputs=['name'], purpose, route) {
         document.body.removeChild(ui)
         document.body.removeChild(bg)
     }
-
+    form.style.textAlign = "left"
+    var loc = 0
     inputs.forEach(function(input) {
+        
+        var type = "uk"
+        console.log(types,loc)
+        if (loc in (types ?? [])) {
+            type = types[loc]
+
+        }
+        
         var label = document.createElement('label')
         label.innerText = input.charAt(0).toUpperCase() + input.slice(1) + ': '
         label.htmlFor = 'input-' + input
@@ -161,16 +170,35 @@ function simpleui(inputs=['name'], purpose, route) {
         }
         create_br()
         var inputField = document.createElement('input')
-        if (input == 'password') {
-            inputField.type = 'password'
+        if (type != "uk") {
+            if (type != 'dir') {
+                inputField.type = type
+            } else {
+                inputField.type = 'file'
+            }
+            if (type == 'file') {
+                inputField.multiple = true
+                inputField.accept = ".*"
+            } else if (type == 'dir') {
+                inputField.webkitdirectory = true
+                inputField.multiple = true
+            }
         } else {
-            inputField.type = 'text'
+            if (input == 'password') {
+        
+                inputField.type = 'password'
+            } else {
+                inputField.type = 'text'
+            }
         }
+        loc ++
         inputField.classList.add(class_)
         inputField.id = 'input-' + input
         inputField.name = input
         inputField.placeholder = input
         inputField.required = true
+        inputField.style.width = "fit-content"
+        inputField.style.textAlign = "left"
         form.appendChild(inputField)
         create_br()
         form.appendChild(document.createElement('br'))
